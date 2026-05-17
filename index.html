@@ -335,10 +335,10 @@ body{font-family:var(--font-body);background:var(--black);color:var(--white);min
       <div id="no-user-bracket" class="alert alert-info" style="display:none;">Inscris-toi d'abord !</div>
       <div id="bracket-countdown" style="display:inline-flex;align-items:center;gap:8px;background:rgba(245,158,11,.1);border:1px solid #f59e0b;border-radius:10px;padding:8px 14px;margin-bottom:1.25rem;font-size:13px;color:#f59e0b;"></div>
       <div id="bracket-content">
-        <div class="bracket-section-card" style="border-color:var(--orange);"><div class="bracket-section-title">🏆 Champion du Monde</div><div class="bracket-section-sub">Plus l'équipe est outsider, plus tu rapportes de points !</div><div id="bracket-champion-list"></div><div id="bracket-champion-msg" class="success-msg" style="margin-top:8px;"></div></div>
+        <div class="bracket-section-card" style="border-color:var(--orange);"><div class="bracket-section-title">🏆 Champion du Monde</div><div class="bracket-section-sub">Qui vois-tu soulever la coupe Jules Rimet le 19 Juillet prochain ?</div><div id="bracket-champion-list"></div><div id="bracket-champion-msg" class="success-msg" style="margin-top:8px;"></div></div>
         <div class="bracket-section-card"><div class="bracket-section-title">⚽ Meilleur Buteur</div><div class="bracket-section-sub">Le joueur qui finira avec le plus de buts</div><div id="bracket-scorer-list"></div><div id="bracket-scorer-msg" class="success-msg" style="margin-top:8px;"></div></div>
-        <div class="bracket-section-card"><div class="bracket-section-title">🌟 Surprise du Tournoi</div><div class="bracket-section-sub">L'équipe outsider qui va aller le plus loin</div><div id="bracket-surprise-list"></div><div id="bracket-surprise-msg" class="success-msg" style="margin-top:8px;"></div></div>
-        <div class="bracket-section-card"><div class="bracket-section-title">💥 Flop du Tournoi</div><div class="bracket-section-sub">La grande nation qui va sortir en poules</div><div id="bracket-flop-list"></div><div id="bracket-flop-msg" class="success-msg" style="margin-top:8px;"></div></div>
+        <div class="bracket-section-card"><div class="bracket-section-title">🌟 Surprise du Tournoi</div><div class="bracket-section-sub">L'équipe outsider qui va sortir de sa poule et se qualifier pour les 16èmes de finale</div><div id="bracket-surprise-list"></div><div id="bracket-surprise-msg" class="success-msg" style="margin-top:8px;"></div></div>
+        <div class="bracket-section-card"><div class="bracket-section-title">💥 Flop du Tournoi</div><div class="bracket-section-sub">La grande nation qui finira 3ème ou 4ème</div><div id="bracket-flop-list"></div><div id="bracket-flop-msg" class="success-msg" style="margin-top:8px;"></div></div>
       </div>
     </div>
 
@@ -608,7 +608,7 @@ const DEFAULT_SCORER_PTS = [
   {name:'Lautaro Martinez - 🇦🇷 Argentine',pts:20},{name:'Mikel Oyarzabal - 🇪🇸 Espagne',pts:20},
   {name:'Ousmane Dembélé - 🇫🇷 France',pts:20},{name:'Vinicius Jr - 🇧🇷 Brésil',pts:25},
   {name:'Nick Woltemade - 🇩🇪 Allemagne',pts:35},{name:'Julian Alvarez - 🇦🇷 Argentine',pts:40},
-  {name:'Raphinha - 🇧🇷 Brésil',pts:45},{name:'Ferran Torres - 🇪🇸 Espagne',pts:55},{name:'⚽ Autre buteur',pts:60}
+  {name:'Raphinha - 🇧🇷 Brésil',pts:45},{name:'Ferran Torres - 🇪🇸 Espagne',pts:55},{name:'⚽ Autre buteur',pts:35}
 ];
 const DEFAULT_SURPRISE_PTS = [
   {team:'🇿🇦 Afrique du Sud',pts:15},{team:'🇵🇾 Paraguay',pts:15},{team:'🇶🇦 Qatar',pts:20},
