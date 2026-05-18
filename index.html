@@ -12,7 +12,7 @@
 body{font-family:var(--font-body);background:var(--black);color:var(--white);height:100vh;overflow:hidden;overflow-x:hidden}
 #app{display:flex;min-height:100vh}
 #sidebar{width:220px;background:var(--dark);border-right:1px solid var(--gray);padding:1.5rem 1rem;display:flex;flex-direction:column;gap:4px;flex-shrink:0;position:fixed;top:0;left:0;bottom:0;overflow-y:auto;z-index:10}
-#main{flex:1;padding:2rem;overflow-y:auto;margin-left:220px;min-height:100vh;max-height:100vh}
+#main{flex:1;padding:2rem;overflow-y:scroll;margin-left:220px;height:100vh}
 .logo{text-align:center;padding-bottom:1rem;border-bottom:1px solid var(--gray);margin-bottom:1rem}
 .logo img{width:80px;height:80px;border-radius:50%;display:block;margin:0 auto 8px;border:2px solid var(--orange)}
 .logo-name{font-family:var(--font-display);font-size:16px;color:var(--orange);letter-spacing:1px}
@@ -187,9 +187,9 @@ body{font-family:var(--font-body);background:var(--black);color:var(--white);hei
 .mobile-nav{display:none;background:var(--dark);border-top:1px solid var(--gray);position:fixed;bottom:0;left:0;right:0;padding:8px;z-index:10}
 @media(max-width:700px){
   #sidebar{display:none}
-  #main{padding:1rem;margin-left:0;max-height:none;overflow-y:auto}
+  #main{padding:1rem;margin-left:0;height:calc(100vh - 70px);overflow-y:scroll}
   .mobile-nav{display:flex;gap:4px}
-  body{height:auto;overflow:auto;padding-bottom:80px}
+  body{height:100vh;overflow:hidden;padding-bottom:0}
   .mobile-nav .nav-btn{flex:1;flex-direction:column;gap:3px;padding:6px 4px;font-size:10px;justify-content:center;align-items:center}
   .mobile-nav .nav-btn .icon{font-size:20px}
   .bracket-section-card{max-width:100%}
