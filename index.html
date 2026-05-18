@@ -9,10 +9,10 @@
 <style>
 :root{--orange:#E85D04;--orange-dark:#C44D02;--black:#0A0A0A;--dark:#111111;--dark2:#1A1A1A;--dark3:#242424;--gray:#2E2E2E;--gray2:#3A3A3A;--muted:#888;--white:#FFFFFF;--font-display:'Bebas Neue',sans-serif;--font-body:'DM Sans',sans-serif;--r:10px;--r-lg:16px}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font-body);background:var(--black);color:var(--white);min-height:100vh;overflow-x:hidden}
-#app{display:flex;min-height:100vh}
+body{font-family:var(--font-body);background:var(--black);color:var(--white);min-height:100vh;overflow-x:hidden;overflow-y:auto}
+#app{display:block;min-height:100vh}
 #sidebar{width:220px;background:var(--dark);border-right:1px solid var(--gray);padding:1.5rem 1rem;display:flex;flex-direction:column;gap:4px;flex-shrink:0;position:fixed;top:0;left:0;bottom:0;overflow-y:auto;overflow-y:auto;z-index:10}
-#main{flex:1;padding:2rem;overflow-y:auto;margin-left:220px;max-height:100vh}
+#main{padding:2rem;margin-left:220px;min-height:100vh}
 .logo{text-align:center;padding-bottom:1rem;border-bottom:1px solid var(--gray);margin-bottom:1rem}
 .logo img{width:80px;height:80px;border-radius:50%;display:block;margin:0 auto 8px;border:2px solid var(--orange)}
 .logo-name{font-family:var(--font-display);font-size:16px;color:var(--orange);letter-spacing:1px}
@@ -394,9 +394,7 @@ body{font-family:var(--font-body);background:var(--black);color:var(--white);min
     <div class="page" id="page-joueurs">
       <div class="page-title">JOUEURS INSCRITS</div>
       <div class="page-sub">Vue admin — données en temps réel</div>
-      <div style="margin-bottom:1rem;">
-        <button class="save-btn" onclick="exportCSV()" style="font-size:13px;padding:10px 18px;">📥 Exporter tous les joueurs (CSV)</button>
-      </div>
+      <div style="margin-bottom:1rem;"><button class="save-btn" onclick="exportCSV()" style="font-size:13px;padding:10px 18px;">📥 Exporter joueurs CSV</button></div>
       <div id="joueurs-table-wrap"></div>
     </div>
 
@@ -1367,7 +1365,11 @@ function renderJoueurs(){
       <div style="background:var(--dark2);border-radius:6px;padding:8px;"><span style="color:var(--muted);">🌟 Surprise :</span><br><strong>${b.surprise||'—'}</strong></div>
       <div style="background:var(--dark2);border-radius:6px;padding:8px;"><span style="color:var(--muted);">💥 Flop :</span><br><strong>${b.flop||'—'}</strong></div>
     </div>
-    ${bonusSummary?`<div style="margin-top:8px;font-size:12px;background:var(--dark2);border-radius:6px;padding:8px;"><span style="color:var(--muted);">Bonus :</span> ${bonusSummary}</div>`:''}`;
+    ${bonusSummary?`<div style="margin-top:8px;font-size:12px;background:var(--dark2);border-radius:6px;padding:8px;"><span style="color:var(--muted);">Bonus :</span> ${bonusSummary}</div>`:''}
+    <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;background:rgba(232,93,4,.08);border:1px solid rgba(232,93,4,.2);border-radius:6px;padding:8px 12px;">
+      <span style="font-size:11px;color:var(--muted);">🔑 Code de récupération</span>
+      <span style="font-family:var(--font-display);font-size:18px;color:var(--orange);letter-spacing:3px;">${user.recoveryCode||generateCode(user.pseudo)}</span>
+    </div>`;
     wrap.appendChild(card);
   });
 }
@@ -1596,42 +1598,25 @@ async function submitRecoveryCode(){
 }
 
 function exportCSV(){
-  const participants = Object.values(state.participants);
-  if(participants.length === 0){toast('Aucun joueur !');return;}
-  const rows = [['Pseudo','Prenom','Avatar','Points','Code Recuperation','Champion','Buteur','Surprise','Flop','Bonus']];
+  if(!state.isAdmin){toast("Accès admin requis.");return;}
+  const participants=Object.values(state.participants);
+  if(participants.length===0){toast('Aucun joueur !');return;}
+  const rows=[['Pseudo','Prenom','Points','Code','Champion','Buteur','Surprise','Flop']];
   participants.forEach(user=>{
-    const pts = computePoints(user.pseudo);
-    const b = user.bracket||{};
-    const bonusSummary = user.matchBonus ? Object.entries(user.matchBonus).map(([mid,key])=>{
-      const m = state.matches.find(x=>x.id===mid);
-      return key+(m?' sur '+m.t1+' vs '+m.t2:'');
-    }).join(' | ') : '';
-    const code = user.recoveryCode||generateCode(user.pseudo);
-    rows.push([
-      user.pseudo,
-      user.prenom||'',
-      getAvatar(user).emoji+' '+getAvatar(user).label,
-      pts,
-      code,
-      b.champion||'',
-      b.scorer||'',
-      b.surprise||'',
-      b.flop||'',
-      bonusSummary
-    ]);
+    const pts=computePoints(user.pseudo);
+    const b=user.bracket||{};
+    const code=user.recoveryCode||generateCode(user.pseudo);
+    rows.push([user.pseudo,user.prenom||'',pts,code,b.champion||'',b.scorer||'',b.surprise||'',b.flop||'']);
   });
-  const csv = rows.map(r=>r.map(v=>'+String(v).replace(/"/g,)+').join(',')).join('
+  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('
 ');
-  const blob = new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'joueurs-fcbj-cdm2026.csv';
-  a.click();
+  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='joueurs-fcbj.csv';a.click();
   URL.revokeObjectURL(url);
   toast('Export téléchargé ! 📥');
 }
-
 function initApp(){
   updateAdminUI();
   renderHome();
