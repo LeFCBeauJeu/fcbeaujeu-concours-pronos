@@ -1364,11 +1364,7 @@ function renderJoueurs(){
       <div style="background:var(--dark2);border-radius:6px;padding:8px;"><span style="color:var(--muted);">🌟 Surprise :</span><br><strong>${b.surprise||'—'}</strong></div>
       <div style="background:var(--dark2);border-radius:6px;padding:8px;"><span style="color:var(--muted);">💥 Flop :</span><br><strong>${b.flop||'—'}</strong></div>
     </div>
-    ${bonusSummary?`<div style="margin-top:8px;font-size:12px;background:var(--dark2);border-radius:6px;padding:8px;"><span style="color:var(--muted);">Bonus :</span> ${bonusSummary}</div>`:''}
-    <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;background:rgba(232,93,4,.08);border:1px solid rgba(232,93,4,.2);border-radius:6px;padding:8px 12px;">
-      <span style="font-size:11px;color:var(--muted);">🔑 Code de récupération</span>
-      <span style="font-family:var(--font-display);font-size:18px;color:var(--orange);letter-spacing:3px;">${user.recoveryCode||generateCode(user.pseudo)}</span>
-    </div>`;
+    ${bonusSummary?`<div style="margin-top:8px;font-size:12px;background:var(--dark2);border-radius:6px;padding:8px;"><span style="color:var(--muted);">Bonus :</span> ${bonusSummary}</div>`:''}`;
     wrap.appendChild(card);
   });
 }
