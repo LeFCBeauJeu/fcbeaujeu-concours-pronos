@@ -8,10 +8,10 @@
 <style>
 :root{--orange:#E85D04;--orange-dark:#C44D02;--black:#0A0A0A;--dark:#111111;--dark2:#1A1A1A;--dark3:#242424;--gray:#2E2E2E;--gray2:#3A3A3A;--muted:#888;--white:#FFFFFF;--font-display:'Bebas Neue',sans-serif;--font-body:'DM Sans',sans-serif;--r:10px;--r-lg:16px}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font-body);background:var(--black);color:var(--white);min-height:100vh;overflow-x:hidden}
+body{font-family:var(--font-body);background:var(--black);color:var(--white);height:100vh;overflow:hidden;overflow-x:hidden}
 #app{display:flex;min-height:100vh}
 #sidebar{width:220px;background:var(--dark);border-right:1px solid var(--gray);padding:1.5rem 1rem;display:flex;flex-direction:column;gap:4px;flex-shrink:0;position:fixed;top:0;left:0;bottom:0;overflow-y:auto;z-index:10}
-#main{flex:1;padding:2rem;overflow-y:auto;margin-left:220px;min-height:100vh}
+#main{flex:1;padding:2rem;overflow-y:auto;margin-left:220px;min-height:100vh;max-height:100vh}
 .logo{text-align:center;padding-bottom:1rem;border-bottom:1px solid var(--gray);margin-bottom:1rem}
 .logo img{width:80px;height:80px;border-radius:50%;display:block;margin:0 auto 8px;border:2px solid var(--orange)}
 .logo-name{font-family:var(--font-display);font-size:16px;color:var(--orange);letter-spacing:1px}
@@ -186,9 +186,9 @@ body{font-family:var(--font-body);background:var(--black);color:var(--white);min
 .mobile-nav{display:none;background:var(--dark);border-top:1px solid var(--gray);position:fixed;bottom:0;left:0;right:0;padding:8px;z-index:10}
 @media(max-width:700px){
   #sidebar{display:none}
-  #main{padding:1rem;margin-left:0}
+  #main{padding:1rem;margin-left:0;max-height:none;overflow-y:auto}
   .mobile-nav{display:flex;gap:4px}
-  body{padding-bottom:70px}
+  body{height:auto;overflow:auto;padding-bottom:80px}
   .mobile-nav .nav-btn{flex:1;flex-direction:column;gap:3px;padding:6px 4px;font-size:10px;justify-content:center;align-items:center}
   .mobile-nav .nav-btn .icon{font-size:20px}
   .bracket-section-card{max-width:100%}
@@ -1363,11 +1363,7 @@ function renderJoueurs(){
       <div style="background:var(--dark2);border-radius:6px;padding:8px;"><span style="color:var(--muted);">🌟 Surprise :</span><br><strong>${b.surprise||'—'}</strong></div>
       <div style="background:var(--dark2);border-radius:6px;padding:8px;"><span style="color:var(--muted);">💥 Flop :</span><br><strong>${b.flop||'—'}</strong></div>
     </div>
-    ${bonusSummary?`<div style="margin-top:8px;font-size:12px;background:var(--dark2);border-radius:6px;padding:8px;"><span style="color:var(--muted);">Bonus :</span> ${bonusSummary}</div>`:''}
-    <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;background:rgba(232,93,4,.08);border:1px solid rgba(232,93,4,.2);border-radius:6px;padding:8px 12px;">
-      <span style="font-size:11px;color:var(--muted);">🔑 Code de récupération</span>
-      <span style="font-family:var(--font-display);font-size:18px;color:var(--orange);letter-spacing:3px;">${user.recoveryCode||generateCode(user.pseudo)}</span>
-    </div>`;
+    ${bonusSummary?`<div style="margin-top:8px;font-size:12px;background:var(--dark2);border-radius:6px;padding:8px;"><span style="color:var(--muted);">Bonus :</span> ${bonusSummary}</div>`:''}`;
     wrap.appendChild(card);
   });
 }
