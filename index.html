@@ -271,13 +271,21 @@ body{font-family:var(--font-body);background:var(--black);color:var(--white);min
           <div class="form-group"><label class="form-label">Prénom (optionnel)</label><input class="form-input" type="text" id="reg-prenom" placeholder="ex: Thibault" maxlength="20"></div>
           <div class="form-group"><label class="form-label">Choisis ton avatar</label><div id="avatar-picker" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;"></div></div>
           <div id="reg-error" class="warning-msg" style="margin-bottom:10px;"></div>
+          <div style="text-align:center;margin-bottom:12px;">
+            <button onclick="showRecoveryModal()" style="background:transparent;border:none;color:var(--muted);font-size:12px;cursor:pointer;font-family:var(--font-body);text-decoration:underline;">Déjà inscrit ? Retrouver mon compte →</button>
+          </div>
           <button class="btn-primary" onclick="register()">Créer mon profil →</button>
         </div>
         <div id="register-success" style="display:none;text-align:center;padding:2rem 0;">
           <div style="font-size:40px;margin-bottom:12px;">🎉</div>
           <div style="font-family:var(--font-display);font-size:24px;color:var(--orange);" id="reg-welcome"></div>
           <p style="color:var(--muted);font-size:14px;margin-top:8px;">Maintenant saisis tes pronostics !</p>
-          <button class="btn-primary" style="margin-top:20px;max-width:240px;" onclick="goto('pronos')">Mes pronostics →</button>
+          <div style="background:var(--dark2);border:1px solid var(--orange);border-radius:var(--r-lg);padding:1rem;margin-top:16px;text-align:center;">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;">🔑 Ton code de récupération</div>
+            <div style="font-family:var(--font-display);font-size:28px;color:var(--orange);letter-spacing:4px;" id="reg-recovery-code">—</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5;">Note-le bien ! Il te permet de retrouver ton compte sur un autre appareil.</div>
+          </div>
+          <button class="btn-primary" style="margin-top:16px;max-width:240px;" onclick="goto('pronos')">Mes pronostics →</button>
         </div>
       </div>
     </div>
@@ -372,6 +380,11 @@ body{font-family:var(--font-body);background:var(--black);color:var(--white);min
         <div style="background:var(--dark);border:1px solid var(--gray);border-radius:var(--r-lg);padding:1.25rem;max-width:560px;">
           <div class="section-label" style="margin-bottom:10px;">Mes bonus</div>
           <div id="profil-bonus"></div>
+        </div>
+        <div style="background:var(--dark);border:1px solid var(--gray);border-radius:var(--r-lg);padding:1.25rem;max-width:560px;margin-top:1rem;text-align:center;">
+          <div class="section-label" style="margin-bottom:8px;">🔑 Mon code de récupération</div>
+          <div style="font-family:var(--font-display);font-size:28px;color:var(--orange);letter-spacing:4px;" id="profil-code">—</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5;">Utilise ce code pour accéder à ton compte depuis un autre appareil.</div>
         </div>
       </div>
     </div>
@@ -772,11 +785,14 @@ async function register(){
   if(pseudo.length<2){errEl.textContent='Pseudo trop court (min 2 car.).';return}
   if(state.participants[pseudo]){errEl.textContent='Ce pseudo est déjà pris.';return}
   const avatar=state._pendingAvatar||'ball';
-  const newUser={pseudo,prenom,avatar,pronos:{},matchBonus:{},bracket:{},jokerUsed:null};
+  const recoveryCode=generateCode(pseudo);
+  const newUser={pseudo,prenom,avatar,recoveryCode,pronos:{},matchBonus:{},bracket:{},jokerUsed:null};
   await fbSet('participants/'+pseudo, newUser);
   state.currentUser=pseudo;
   localStorage.setItem('fcbj_user', pseudo);
   document.getElementById('reg-welcome').textContent='Bienvenue, '+(prenom||pseudo)+' !';
+  const codeEl=document.getElementById('reg-recovery-code');
+  if(codeEl)codeEl.textContent=recoveryCode;
   document.getElementById('register-form-wrap').style.display='none';
   document.getElementById('register-success').style.display='block';
   toast('Inscription réussie ! 🎉');
@@ -1302,6 +1318,11 @@ function renderProfil(){
     bonusEl.appendChild(row);
   });
   bonusEl.lastChild&&(bonusEl.lastChild.style.borderBottom='none');
+  const pcodeEl=document.getElementById('profil-code');
+  if(pcodeEl){
+    const code=user.recoveryCode||generateCode(state.currentUser);
+    pcodeEl.textContent=code;
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1516,9 +1537,64 @@ function validateAndShare(){
   openStoryModal();
 }
 
+function generateCode(pseudo){
+  let hash=0;
+  for(let i=0;i<pseudo.length;i++){hash=((hash<<5)-hash)+pseudo.charCodeAt(i);hash|=0;}
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code='FCBJ';
+  let h=Math.abs(hash);
+  for(let i=0;i<4;i++){code+=chars[h%chars.length];h=Math.floor(h/chars.length);}
+  return code;
+}
+
+async function migrateExistingUsers(){
+  const updates={};
+  Object.values(state.participants).forEach(user=>{
+    if(!user.recoveryCode){
+      updates['participants/'+user.pseudo+'/recoveryCode']=generateCode(user.pseudo);
+    }
+  });
+  if(Object.keys(updates).length>0){
+    await window._update(window._ref(window._db),updates);
+  }
+}
+
+function showRecoveryModal(){
+  const modal=document.createElement('div');
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:100;';
+  modal.innerHTML=`<div style="background:var(--dark);border:1px solid var(--gray);border-radius:var(--r-lg);padding:2rem;max-width:340px;width:90vw;">
+    <div style="font-family:var(--font-display);font-size:22px;margin-bottom:.5rem;">🔑 Retrouver mon compte</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:1.25rem;line-height:1.6;">Entre ton code de récupération pour accéder à ton compte.</p>
+    <input class="form-input" type="text" id="recovery-code-input" placeholder="Ex: FCBJ4X2R" maxlength="8" style="text-transform:uppercase;letter-spacing:2px;font-size:16px;text-align:center;margin-bottom:10px;">
+    <div id="recovery-error" style="color:#ef4444;font-size:12px;margin-bottom:10px;"></div>
+    <button class="btn-primary" onclick="submitRecoveryCode()">Retrouver mon compte →</button>
+    <button class="btn-secondary" onclick="this.closest('div[style*=inset]').remove()">Annuler</button>
+  </div>`;
+  document.body.appendChild(modal);
+  document.getElementById('recovery-code-input').addEventListener('input',function(){this.value=this.value.toUpperCase();});
+}
+
+async function submitRecoveryCode(){
+  const code=document.getElementById('recovery-code-input').value.trim().toUpperCase();
+  if(code.length<6){document.getElementById('recovery-error').textContent='Code trop court.';return;}
+  const found=Object.values(state.participants).find(u=>u.recoveryCode===code||(u.recoveryCode===undefined&&generateCode(u.pseudo)===code));
+  if(!found){document.getElementById('recovery-error').textContent='Code introuvable. Vérifie et réessaie.';return;}
+  state.currentUser=found.pseudo;
+  localStorage.setItem('fcbj_user',found.pseudo);
+  document.querySelector('div[style*="inset:0"]')?.remove();
+  toast('Compte retrouvé ! Bienvenue '+(found.prenom||found.pseudo)+' 👋');
+  document.getElementById('reg-welcome').textContent='Bienvenue, '+(found.prenom||found.pseudo)+' !';
+  document.getElementById('register-form-wrap').style.display='none';
+  document.getElementById('register-success').style.display='block';
+  const codeEl=document.getElementById('reg-recovery-code');
+  if(codeEl)codeEl.textContent=found.recoveryCode||generateCode(found.pseudo);
+  goto('pronos');
+}
+
 function initApp(){
   updateAdminUI();
   renderHome();
+  migrateExistingUsers();
   // Restore session
   if(state.currentUser&&state.participants[state.currentUser]){
     const u=state.participants[state.currentUser];
