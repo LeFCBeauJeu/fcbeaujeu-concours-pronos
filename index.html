@@ -394,7 +394,6 @@ body{font-family:var(--font-body);background:var(--black);color:var(--white);min
     <div class="page" id="page-joueurs">
       <div class="page-title">JOUEURS INSCRITS</div>
       <div class="page-sub">Vue admin — données en temps réel</div>
-      <div style="margin-bottom:1rem;"><button class="save-btn" onclick="exportCSV()" style="font-size:13px;padding:10px 18px;">📥 Exporter joueurs CSV</button></div>
       <div id="joueurs-table-wrap"></div>
     </div>
 
@@ -1597,26 +1596,6 @@ async function submitRecoveryCode(){
   goto('pronos');
 }
 
-function exportCSV(){
-  if(!state.isAdmin){toast("Accès admin requis.");return;}
-  const participants=Object.values(state.participants);
-  if(participants.length===0){toast('Aucun joueur !');return;}
-  const rows=[['Pseudo','Prenom','Points','Code','Champion','Buteur','Surprise','Flop']];
-  participants.forEach(user=>{
-    const pts=computePoints(user.pseudo);
-    const b=user.bracket||{};
-    const code=user.recoveryCode||generateCode(user.pseudo);
-    rows.push([user.pseudo,user.prenom||'',pts,code,b.champion||'',b.scorer||'',b.surprise||'',b.flop||'']);
-  });
-  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('
-');
-  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;a.download='joueurs-fcbj.csv';a.click();
-  URL.revokeObjectURL(url);
-  toast('Export téléchargé ! 📥');
-}
 function initApp(){
   updateAdminUI();
   renderHome();
