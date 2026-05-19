@@ -1138,6 +1138,7 @@ function computePoints(pseudo){
   if(cfg('bracketScorer')&&user.bracket&&user.bracket.scorer===cfg('bracketScorer')){const f=getScorerPts().find(b=>b.name===cfg('bracketScorer'));if(f)pts+=f.pts;}
   if(cfg('bracketSurprise')&&user.bracket&&user.bracket.surprise===cfg('bracketSurprise')){const f=getSurprisePts().find(b=>b.team===cfg('bracketSurprise'));if(f)pts+=f.pts;}
   if(cfg('bracketFlop')&&user.bracket&&user.bracket.flop===cfg('bracketFlop')){const f=getFlopPts().find(b=>b.team===cfg('bracketFlop'));if(f)pts+=f.pts;}
+  if(user.bonusPoints) pts+=user.bonusPoints;
   return pts;
 }
 function computeStreak(pseudo){
@@ -1390,7 +1391,15 @@ function renderJoueurs(){
       <div style="background:var(--dark2);border-radius:6px;padding:8px;"><span style="color:var(--muted);">🌟 Surprise :</span><br><strong>${b.surprise||'—'}</strong></div>
       <div style="background:var(--dark2);border-radius:6px;padding:8px;"><span style="color:var(--muted);">💥 Flop :</span><br><strong>${b.flop||'—'}</strong></div>
     </div>
-    ${bonusSummary?`<div style="margin-top:8px;font-size:12px;background:var(--dark2);border-radius:6px;padding:8px;"><span style="color:var(--muted);">Bonus :</span> ${bonusSummary}</div>`:''}`;
+    ${bonusSummary?`<div style="margin-top:8px;font-size:12px;background:var(--dark2);border-radius:6px;padding:8px;"><span style="color:var(--muted);">Bonus :</span> ${bonusSummary}</div>`:''}
+    <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;background:var(--dark2);border-radius:6px;padding:8px 12px;gap:8px;">
+      <span style="font-size:11px;color:var(--muted);">🎁 Points bonus</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:14px;font-weight:700;color:var(--orange);" id="bp-val-${user.pseudo}">${user.bonusPoints||0} pts</span>
+        <input type="number" id="bp-input-${user.pseudo}" value="${user.bonusPoints||0}" style="width:60px;background:var(--dark3);border:1px solid var(--gray);border-radius:6px;padding:4px 6px;color:var(--white);font-family:var(--font-body);font-size:13px;text-align:center;">
+        <button onclick="saveBonusPoints('${user.pseudo}')" style="padding:4px 10px;background:var(--orange);border:none;border-radius:6px;color:white;font-size:11px;cursor:pointer;font-family:var(--font-body);font-weight:600;">OK</button>
+      </div>
+    </div>`;
     wrap.appendChild(card);
   });
 }
@@ -1618,6 +1627,14 @@ async function submitRecoveryCode(){
   goto('pronos');
 }
 
+async function saveBonusPoints(pseudo){
+  if(!state.isAdmin)return;
+  const input=document.getElementById('bp-input-'+pseudo);
+  if(!input)return;
+  const pts=parseInt(input.value)||0;
+  await fbUpdate('participants/'+pseudo,{bonusPoints:pts});
+  toast('Bonus de '+pts+' pts attribues a '+pseudo);
+}
 function initApp(){
   updateAdminUI();
   renderHome();
