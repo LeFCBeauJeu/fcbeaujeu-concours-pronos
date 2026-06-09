@@ -530,7 +530,7 @@ window.state = {
   participants: {},
   config: null,
   matches: [],
-  currentUser: localStorage.getItem('fcbj_user') || null,
+  currentUser: (()=>{try{return localStorage.getItem('fcbj_user')||null;}catch(e){return null;}})(),
   isAdmin: false,
   _pendingAvatar: null
 };
@@ -1616,7 +1616,7 @@ function showRecoveryModal(){
   modal.innerHTML=`<div style="background:var(--dark);border:1px solid var(--gray);border-radius:var(--r-lg);padding:2rem;max-width:340px;width:90vw;">
     <div style="font-family:var(--font-display);font-size:22px;margin-bottom:.5rem;">🔑 Retrouver mon compte</div>
     <p style="font-size:13px;color:var(--muted);margin-bottom:1.25rem;line-height:1.6;">Entre ton code de récupération pour accéder à ton compte.</p>
-    <input class="form-input" type="text" id="recovery-code-input" placeholder="Ex: FCBJ4X2R" maxlength="8" style="text-transform:uppercase;letter-spacing:2px;font-size:16px;text-align:center;margin-bottom:10px;">
+    <input class="form-input" type="text" id="recovery-code-input" placeholder="Ex: FCBJ4X2R" maxlength="8" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" style="text-transform:uppercase;letter-spacing:2px;font-size:16px;text-align:center;margin-bottom:10px;">
     <div id="recovery-error" style="color:#ef4444;font-size:12px;margin-bottom:10px;"></div>
     <button class="btn-primary" onclick="submitRecoveryCode()">Retrouver mon compte →</button>
     <button class="btn-secondary" onclick="this.closest('div[style*=inset]').remove()">Annuler</button>
@@ -1626,12 +1626,19 @@ function showRecoveryModal(){
 }
 
 async function submitRecoveryCode(){
-  const code=document.getElementById('recovery-code-input').value.trim().toUpperCase();
+  // Nettoyage agressif : supprimer espaces, tirets, points, majuscule forcée
+  const raw=document.getElementById('recovery-code-input').value;
+  const code=raw.replace(/[^A-Za-z0-9]/g,'').trim().toUpperCase();
+  console.log('Code saisi:', raw, '-> nettoyé:', code);
   if(code.length<6){document.getElementById('recovery-error').textContent='Code trop court.';return;}
-  const found=Object.values(state.participants).find(u=>u.recoveryCode===code||(u.recoveryCode===undefined&&generateCode(u.pseudo)===code));
-  if(!found){document.getElementById('recovery-error').textContent='Code introuvable. Vérifie et réessaie.';return;}
+  // Chercher avec code nettoyé
+  const found=Object.values(state.participants).find(u=>{
+    const uCode=(u.recoveryCode||generateCode(u.pseudo)).replace(/[^A-Za-z0-9]/g,'').toUpperCase();
+    return uCode===code;
+  });
+  if(!found){document.getElementById('recovery-error').textContent='Code introuvable. Verifie et reessaie.';return;}
   state.currentUser=found.pseudo;
-  localStorage.setItem('fcbj_user',found.pseudo);
+  try{ localStorage.setItem('fcbj_user',found.pseudo); }catch(e){ console.log('localStorage indisponible, session en memoire'); }
   document.querySelector('div[style*="inset:0"]')?.remove();
   toast('Compte retrouvé ! Bienvenue '+(found.prenom||found.pseudo)+' 👋');
   document.getElementById('reg-welcome').textContent='Bienvenue, '+(found.prenom||found.pseudo)+' !';
