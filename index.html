@@ -196,9 +196,13 @@ body{font-family:var(--font-body);background:var(--black);color:var(--white);min
   .cards-grid{grid-template-columns:repeat(2,1fr)}
   .podium{gap:6px}
 }
+#top-banner{display:none;width:100%;background:var(--orange);color:white;text-align:center;padding:10px 16px;font-family:var(--font-body);font-size:13px;font-weight:600;position:relative;z-index:20;line-height:1.4;}
+#top-banner a{color:white;text-decoration:underline;}
+#top-banner.visible{display:block;}
 </style>
 </head>
 <body>
+<div id="top-banner"></div>
 <div id="toast"></div>
 <div id="app">
   <div id="sidebar">
@@ -428,6 +432,15 @@ body{font-family:var(--font-body);background:var(--black);color:var(--white);min
       <div class="page-title">PARAMÈTRES</div>
       <div class="page-sub">Configuration du concours</div>
       <div class="settings-section">
+        <h3>📢 Bandeau d'annonce</h3>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:1rem;">Affiché en haut de toutes les pages. Laisse vide pour masquer.</p>
+        <div class="form-group">
+          <label class="form-label">Message</label>
+          <input class="form-input" id="cfg-banner" placeholder="Ex: ⚽ Pronostique le score exact de Mexique - Afrique du Sud !" style="margin-bottom:8px;">
+        </div>
+        <button class="save-btn" onclick="saveBannerMessage()" style="font-size:13px;padding:8px 16px;">💾 Enregistrer le bandeau</button>
+      </div>
+      <div class="settings-section">
         <h3>Informations</h3>
         <div class="form-group"><label class="form-label">Nom</label><input class="form-input" id="cfg-name" value="FC BEAU JEU"></div>
         <div class="form-group"><label class="form-label">Sous-titre</label><input class="form-input" id="cfg-subtitle" value="Coupe du Monde 2026"></div>
@@ -552,6 +565,7 @@ function listenFirebase() {
     if (cfg) {
       state.config = cfg;
       applyConfig();
+      updateBanner();
       renderCurrentPage();
     }
   });
@@ -1415,6 +1429,7 @@ async function deletePlayer(pseudo){
 // ═══════════════════════════════════════════════════════════════════════════
 function renderSettings(){
   if(!state.config)return;
+  const bannerEl=document.getElementById('cfg-banner'); if(bannerEl) bannerEl.value=state.config.bannerMessage||'';
   document.getElementById('cfg-name').value=state.config.name||'FC BEAU JEU';
   document.getElementById('cfg-subtitle').value=state.config.subtitle||'Coupe du Monde 2026';
   document.getElementById('cfg-enddate').value=state.config.enddate||'2026-07-19';
@@ -1635,9 +1650,33 @@ async function saveBonusPoints(pseudo){
   await fbUpdate('participants/'+pseudo,{bonusPoints:pts});
   toast('Bonus de '+pts+' pts attribues a '+pseudo);
 }
+function updateBanner(){
+  const banner = document.getElementById('top-banner');
+  if(!banner) return;
+  const msg = (state.config && state.config.bannerMessage) || '';
+  if(msg.trim()){
+    banner.textContent = msg;
+    banner.classList.add('visible');
+  } else {
+    banner.textContent = '';
+    banner.classList.remove('visible');
+  }
+}
+
+async function saveBannerMessage(){
+  const input = document.getElementById('cfg-banner');
+  if(!input) return;
+  const msg = input.value.trim();
+  const newConfig = {...(state.config || {}), bannerMessage: msg};
+  await fbSet('config', newConfig);
+  updateBanner();
+  toast(msg ? 'Bandeau mis a jour !' : 'Bandeau masque.');
+}
+
 function initApp(){
   updateAdminUI();
   renderHome();
+  updateBanner();
   migrateExistingUsers();
   // Restore session
   if(state.currentUser&&state.participants[state.currentUser]){
