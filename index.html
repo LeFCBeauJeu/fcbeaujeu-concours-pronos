@@ -199,6 +199,35 @@ body{font-family:var(--font-body);background:var(--black);color:var(--white);min
 #top-banner{display:none;width:100%;background:var(--orange);color:white;text-align:center;padding:10px 16px;font-family:var(--font-body);font-size:13px;font-weight:600;position:relative;z-index:20;line-height:1.4;}
 #top-banner a{color:white;text-decoration:underline;}
 #top-banner.visible{display:block;}
+.trophies-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:10px;margin-bottom:16px}
+.trophy-card{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 6px;border-radius:10px;border:1px solid var(--gray);background:var(--dark2);position:relative;transition:transform .15s}
+.trophy-card:hover{transform:translateY(-2px)}
+.trophy-card.locked{opacity:.3;filter:grayscale(1)}
+.trophy-icon{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.trophy-bronze .trophy-icon{background:#1a0e00;border:2px solid #cd7f32;box-shadow:0 0 8px rgba(205,127,50,.3)}
+.trophy-silver .trophy-icon{background:#1a1a2e;border:2px solid #c0c0c0;box-shadow:0 0 8px rgba(192,192,192,.2)}
+.trophy-gold .trophy-icon{background:#1a1200;border:2px solid #ffd700;box-shadow:0 0 10px rgba(255,215,0,.35)}
+.trophy-platinum .trophy-icon{background:#0d1a2e;border:2px solid #a8d8ea;box-shadow:0 0 12px rgba(168,216,234,.4)}
+.trophy-name{font-size:9px;color:var(--muted);text-align:center;line-height:1.3;font-weight:600}
+.trophy-card:not(.locked) .trophy-name{color:var(--white)}
+.trophy-section-title{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--gray)}
+.trophy-section-title.bronze{color:#cd7f32;border-color:#3d2200}
+.trophy-section-title.silver{color:#c0c0c0;border-color:#2a2a2a}
+.trophy-section-title.gold{color:#ffd700;border-color:#2d2000}
+.trophy-section-title.platinum{color:#a8d8ea;border-color:#1a2d4e}
+.trophy-platinum-card{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:10px;border:1px solid #1a2d4e;background:rgba(13,26,46,.5)}
+.trophy-platinum-card.unlocked{border-color:#a8d8ea;background:rgba(13,26,46,.8)}
+.trophy-stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.trophy-pill{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.3px}
+.trophy-pill.bronze{background:rgba(205,127,50,.15);color:#cd7f32;border:1px solid rgba(205,127,50,.3)}
+.trophy-pill.silver{background:rgba(192,192,192,.1);color:#c0c0c0;border:1px solid rgba(192,192,192,.2)}
+.trophy-pill.gold{background:rgba(255,215,0,.1);color:#ffd700;border:1px solid rgba(255,215,0,.2)}
+.trophy-pill.platinum{background:rgba(168,216,234,.1);color:#a8d8ea;border:1px solid rgba(168,216,234,.3)}
+.trophy-tooltip{position:fixed;background:#1e1e1e;border:1px solid #333;border-radius:8px;padding:10px 14px;font-size:12px;color:white;max-width:220px;z-index:9999;pointer-events:none;line-height:1.5;box-shadow:0 4px 20px rgba(0,0,0,.5);}
+.trophy-tooltip .tt-name{font-weight:700;margin-bottom:4px;font-size:13px;}
+.trophy-tooltip .tt-tier{font-size:10px;margin-bottom:6px;letter-spacing:.5px;}
+.trophy-tooltip .tt-desc{color:rgba(255,255,255,.7);}
+.trophy-tooltip .tt-status{margin-top:6px;font-size:11px;}
 </style>
 </head>
 <body>
@@ -216,7 +245,7 @@ body{font-family:var(--font-body);background:var(--black);color:var(--white);min
     <button class="nav-btn" onclick="goto('register')" data-page="register"><span class="icon">✍️</span> S'inscrire</button>
     <button class="nav-btn" onclick="goto('pronos')" data-page="pronos"><span class="icon">⚽</span> Pronostics</button>
     <button class="nav-btn" onclick="goto('bonus')" data-page="bonus"><span class="icon">🎯</span> Bonus</button>
-    <button class="nav-btn" onclick="goto('bracket')" data-page="bracket"><span class="icon">🏆</span> Bracket</button>
+    <button class="nav-btn" onclick="goto('bracket')" data-page="bracket"><span class="icon">🎖️</span> Bracket</button>
     <button class="nav-btn" onclick="goto('classement')" data-page="classement"><span class="icon">📊</span> Classement</button>
     <button class="nav-btn" onclick="goto('profil')" data-page="profil"><span class="icon">👤</span> Mon Profil</button>
     <div class="admin-toggle">
@@ -417,6 +446,10 @@ body{font-family:var(--font-body);background:var(--black);color:var(--white);min
           <div style="font-family:var(--font-display);font-size:28px;color:var(--orange);letter-spacing:4px;" id="profil-code">—</div>
           <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5;">Utilise ce code pour accéder à ton compte depuis un autre appareil.</div>
         </div>
+        <div style="background:var(--dark);border:1px solid var(--gray);border-radius:var(--r-lg);padding:1.5rem;max-width:560px;margin-top:1rem;">
+          <div class="section-label" style="margin-bottom:4px;">🏆 Mes Trophées</div>
+          <div id="profil-trophies"></div>
+        </div>
       </div>
     </div>
 
@@ -502,7 +535,7 @@ body{font-family:var(--font-body);background:var(--black);color:var(--white);min
   <button class="nav-btn active" onclick="goto('home')" data-page="home"><span class="icon">🏠</span>Accueil</button>
   <button class="nav-btn" onclick="goto('pronos')" data-page="pronos"><span class="icon">⚽</span>Pronos</button>
   <button class="nav-btn" onclick="goto('bonus')" data-page="bonus"><span class="icon">🎯</span>Bonus</button>
-  <button class="nav-btn" onclick="goto('bracket')" data-page="bracket"><span class="icon">🏆</span>Bracket</button>
+  <button class="nav-btn" onclick="goto('bracket')" data-page="bracket"><span class="icon">🎖️</span>Bracket</button>
   <button class="nav-btn" onclick="goto('classement')" data-page="classement"><span class="icon">📊</span>Class.</button>
   <button class="nav-btn" onclick="goto('profil')" data-page="profil"><span class="icon">👤</span>Profil</button>
 </div>
@@ -1365,6 +1398,8 @@ function renderProfil(){
     const code=user.recoveryCode||generateCode(state.currentUser);
     pcodeEl.textContent=code;
   }
+  const trophyEl=document.getElementById('profil-trophies');
+  if(trophyEl) renderTrophyPanel(trophyEl, state.currentUser);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1679,6 +1714,165 @@ async function saveBannerMessage(){
   updateBanner();
   toast(msg ? 'Bandeau mis a jour !' : 'Bandeau masque.');
 }
+
+const TROPHIES=[
+  {id:'first_prono',    tier:'bronze',  icon:'⚽',name:'Premier Prono',    desc:'Valider son premier pronostic'},
+  {id:'10_matchs',      tier:'bronze',  icon:'📋',name:'Dans la Course',   desc:'Pronostiquer 10 matchs'},
+  {id:'first_bonus',    tier:'bronze',  icon:'🎯',name:'Stratège',         desc:'Activer son premier bonus'},
+  {id:'footix',         tier:'bronze',  icon:'🐓',name:'Footix Assumé',    desc:'Utiliser Le Footix'},
+  {id:'full_bonus',     tier:'bronze',  icon:'🃏',name:'Full Bonus',       desc:'Avoir utilisé ses 6 types de bonus'},
+  {id:'joueur_complet', tier:'bronze',  icon:'🤝',name:'Joueur Complet',   desc:'Bracket ET pronostics remplis'},
+  {id:'en_feu',         tier:'silver',  icon:'🔥',name:'En Feu',           desc:'3 bons pronos d\'affilée'},
+  {id:'30_matchs',      tier:'silver',  icon:'💪',name:'Acharné',          desc:'Pronostiquer 30 matchs'},
+  {id:'72_matchs',      tier:'silver',  icon:'🏟️',name:'Phase de Groupes', desc:'Pronostiquer les 72 matchs de poules'},
+  {id:'aventurier',     tier:'silver',  icon:'🌟',name:'Aventurier',       desc:'Pronostiquer dans au moins 2 phases du tournoi'},
+  {id:'finale',         tier:'silver',  icon:'🎪',name:'Jusqu\'au Bout',  desc:'Pronostiquer la finale'},
+  {id:'all_knockout',   tier:'silver',  icon:'🏆',name:'Finaliste',        desc:'Pronostiquer tous les matchs à élimination'},
+  {id:'5_affilee',      tier:'gold',    icon:'💥',name:'Inarrêtable',      desc:'5 bons pronos d\'affilée'},
+  {id:'7_affilee',      tier:'gold',    icon:'☄️',name:'Intouchable',      desc:'7 bons pronos d\'affilée'},
+  {id:'sniper',         tier:'gold',    icon:'🎯',name:'Sniper',           desc:'70% de réussite globale'},
+  {id:'all_in',         tier:'gold',    icon:'🦾',name:'All-In',           desc:'Pronostiquer tous les matchs du tournoi'},
+  {id:'nostradamus',    tier:'gold',    icon:'🔮',name:'Nostradamus',      desc:'Trouver le bon champion du monde'},
+  {id:'oracle',         tier:'gold',    icon:'🏹',name:'Oracle',           desc:'Trouver le bon meilleur buteur'},
+  {id:'legend',         tier:'platinum',icon:'💠',name:'Dans la Légende',  desc:'Obtenir les 18 autres trophées'},
+];
+
+function computeTrophies(pseudo){
+  const user=state.participants[pseudo];
+  if(!user)return[];
+  const unlocked=[];
+  const pronos=user.pronos||{};
+  const matchBonus=user.matchBonus||{};
+  const bracket=user.bracket||{};
+  const bonusDefs=getBonusDefs();
+  const streak=computeStreak(pseudo);
+  const pronoCount=Object.values(pronos).filter(p=>p&&p.cote).length;
+  const correctCount=state.matches.filter(m=>m.result&&computeMatchResult(user,m)>0).length;
+  const playedWithResult=state.matches.filter(m=>m.result&&pronos[m.id]&&pronos[m.id].cote).length;
+  const accuracy=playedWithResult>0?correctCount/playedWithResult:0;
+  const bonusKeysUsed=[...new Set(Object.values(matchBonus))];
+  if(pronoCount>=1)unlocked.push('first_prono');
+  if(pronoCount>=10)unlocked.push('10_matchs');
+  if(bonusKeysUsed.length>=1)unlocked.push('first_bonus');
+  if(bonusKeysUsed.includes('footix'))unlocked.push('footix');
+  const allBonusKeys=bonusDefs.map(b=>b.key);
+  if(allBonusKeys.every(k=>bonusKeysUsed.includes(k)))unlocked.push('full_bonus');
+  if(bracket.champion&&bracket.scorer&&bracket.surprise&&bracket.flop&&pronoCount>=1)unlocked.push('joueur_complet');
+  if(streak.current>=3||streak.best>=3)unlocked.push('en_feu');
+  if(pronoCount>=30)unlocked.push('30_matchs');
+  if(pronoCount>=72)unlocked.push('72_matchs');
+  const phases=new Set(state.matches.filter(m=>pronos[m.id]&&pronos[m.id].cote).map(m=>m.group&&m.group.includes('Groupe')?'groupe':'knockout'));
+  const phasesArr=[...phases];
+  if(phasesArr.includes('groupe')&&phasesArr.includes('knockout'))unlocked.push('aventurier');
+  const finaleMatch=state.matches.find(m=>m.group&&m.group.toLowerCase().includes('final'));
+  if(finaleMatch&&pronos[finaleMatch.id]&&pronos[finaleMatch.id].cote)unlocked.push('finale');
+  const knockoutMatches=state.matches.filter(m=>m.group&&!m.group.includes('Groupe'));
+  if(knockoutMatches.length>0&&knockoutMatches.every(m=>pronos[m.id]&&pronos[m.id].cote))unlocked.push('all_knockout');
+  if(streak.current>=5||streak.best>=5)unlocked.push('5_affilee');
+  if(streak.current>=7||streak.best>=7)unlocked.push('7_affilee');
+  if(playedWithResult>=10&&accuracy>=0.7)unlocked.push('sniper');
+  if(pronoCount>=state.matches.length&&state.matches.length>0)unlocked.push('all_in');
+  if(cfg('bracketWinner')&&bracket.champion===cfg('bracketWinner'))unlocked.push('nostradamus');
+  if(cfg('bracketScorer')&&bracket.scorer===cfg('bracketScorer'))unlocked.push('oracle');
+  const nonPlat=TROPHIES.filter(t=>t.tier!=='platinum').map(t=>t.id);
+  if(nonPlat.every(id=>unlocked.includes(id)))unlocked.push('legend');
+  return unlocked;
+}
+
+function renderTrophyPanel(container,pseudo){
+  const unlocked=computeTrophies(pseudo);
+  const tiers=['bronze','silver','gold','platinum'];
+  const tierLabels={bronze:'🟫 Bronze',silver:'⬜ Argent',gold:'🟨 Or',platinum:'✨ Platine'};
+  container.innerHTML='';
+  const total=TROPHIES.length;
+  const got=unlocked.length;
+  const statsDiv=document.createElement('div');
+  statsDiv.className='trophy-stats';
+  tiers.forEach(function(tier){
+    const tt=TROPHIES.filter(t=>t.tier===tier);
+    const tg=tt.filter(t=>unlocked.includes(t.id)).length;
+    const pill=document.createElement('span');
+    pill.className='trophy-pill '+tier;
+    pill.textContent=tierLabels[tier]+' '+tg+'/'+tt.length;
+    statsDiv.appendChild(pill);
+  });
+  container.appendChild(statsDiv);
+  const progWrap=document.createElement('div');
+  progWrap.style.cssText='background:var(--gray);border-radius:4px;height:6px;margin-bottom:16px;overflow:hidden;';
+  const progFill=document.createElement('div');
+  progFill.style.cssText='height:100%;background:var(--orange);border-radius:4px;width:'+Math.round(got/total*100)+'%;';
+  progWrap.appendChild(progFill);
+  container.appendChild(progWrap);
+  tiers.forEach(function(tier){
+    const tt=TROPHIES.filter(t=>t.tier===tier);
+    const title=document.createElement('div');
+    title.className='trophy-section-title '+tier;
+    title.textContent=tierLabels[tier];
+    container.appendChild(title);
+    if(tier==='platinum'){
+      const t=tt[0];
+      const isUnlocked=unlocked.includes(t.id);
+      const card=document.createElement('div');
+      card.className='trophy-platinum-card'+(isUnlocked?' unlocked':'');
+      const nonPlat=TROPHIES.filter(x=>x.tier!=='platinum');
+      const gotPlat=nonPlat.filter(x=>unlocked.includes(x.id)).length;
+      card.innerHTML='<div class="trophy-icon" style="width:52px;height:52px;font-size:28px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#0d1a2e;border:2px solid #a8d8ea;">'+t.icon+'</div>'
+        +'<div><div style="font-size:14px;color:#a8d8ea;font-weight:700;margin-bottom:4px;">'+t.name+'</div>'
+        +'<div style="font-size:11px;color:var(--muted);line-height:1.5;">'+t.desc+'</div>'
+        +'<div style="margin-top:6px;font-size:11px;color:'+(isUnlocked?'#22c55e':'var(--muted)')+';">'+(isUnlocked?'Debloque !':gotPlat+' / '+(nonPlat.length)+' trophees obtenus')+'</div>'
+        +'</div>';
+      card.addEventListener('mouseenter',function(e){showTrophyTooltip(e,t,isUnlocked);});
+      card.addEventListener('mouseleave',hideTrophyTooltip);
+      card.addEventListener('click',function(e){e.stopPropagation();showTrophyTooltip(e,t,isUnlocked);});
+      container.appendChild(card);
+    } else {
+      const grid=document.createElement('div');
+      grid.className='trophies-grid';
+      tt.forEach(function(t){
+        const isUnlocked=unlocked.includes(t.id);
+        const card=document.createElement('div');
+        card.className='trophy-card trophy-'+tier+(isUnlocked?'':' locked');
+        card.title=t.desc;
+        card.innerHTML='<div class="trophy-icon">'+t.icon+'</div><div class="trophy-name">'+t.name+'</div>';
+        card.addEventListener('mouseenter',function(e){showTrophyTooltip(e,t,isUnlocked);});
+        card.addEventListener('mouseleave',hideTrophyTooltip);
+        card.addEventListener('click',function(e){e.stopPropagation();showTrophyTooltip(e,t,isUnlocked);});
+        grid.appendChild(card);
+      });
+      container.appendChild(grid);
+    }
+  });
+}
+
+let _tt = null;
+function showTrophyTooltip(e, t, isUnlocked) {
+  hideTrophyTooltip();
+  const tip = document.createElement('div');
+  tip.className = 'trophy-tooltip';
+  const tierColors = {bronze:'#cd7f32',silver:'#c0c0c0',gold:'#ffd700',platinum:'#a8d8ea'};
+  const tierNames = {bronze:'Bronze',silver:'Argent',gold:'Or',platinum:'Platine'};
+  tip.innerHTML = '<div class="tt-name">'+t.icon+' '+t.name+'</div>'
+    +'<div class="tt-tier" style="color:'+tierColors[t.tier]+';">'+tierNames[t.tier].toUpperCase()+'</div>'
+    +'<div class="tt-desc">'+t.desc+'</div>'
+    +'<div class="tt-status" style="color:'+(isUnlocked?'#22c55e':'#888')+';">'+(isUnlocked?'✅ Trophée débloqué !':'🔒 Non débloqué')+'</div>';
+  document.body.appendChild(tip);
+  _tt = tip;
+  moveTrophyTooltip(e);
+}
+function moveTrophyTooltip(e) {
+  if(!_tt) return;
+  const x = e.clientX + 12;
+  const y = e.clientY + 12;
+  const maxX = window.innerWidth - 240;
+  const maxY = window.innerHeight - 120;
+  _tt.style.left = Math.min(x, maxX) + 'px';
+  _tt.style.top = Math.min(y, maxY) + 'px';
+}
+function hideTrophyTooltip() {
+  if(_tt){_tt.remove();_tt=null;}
+}
+document.addEventListener('mousemove', moveTrophyTooltip);
+document.addEventListener('click', function(e){if(!e.target.closest('.trophy-card')&&!e.target.closest('.trophy-platinum-card'))hideTrophyTooltip();});
 
 function initApp(){
   updateAdminUI();
