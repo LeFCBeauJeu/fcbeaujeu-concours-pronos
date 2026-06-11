@@ -1162,9 +1162,9 @@ function computeMatchResult(user,m){
   const coteVal=(c)=>c==='1'?cotes.c1:c==='x'?cotes.cx:c==='2'?cotes.c2:0;
   const isCorrect=(c)=>c&&((c==='1'&&res===1)||(c==='x'&&res===0)||(c==='2'&&res===2));
   const adminBonus=(pts)=>{
-    if(m.adminBonus&&m.adminBonus.peno)pts+=15;
-    if(m.adminBonus&&m.adminBonus.barton)pts+=15;
-    if(m.adminBonus&&m.adminBonus.feu)pts+=20;
+    if(m.adminBonus&&m.adminBonus.peno&&bonusKey==='peno')pts+=15;
+    if(m.adminBonus&&m.adminBonus.barton&&bonusKey==='barton')pts+=15;
+    if(m.adminBonus&&m.adminBonus.feu&&bonusKey==='feu')pts+=20;
     return pts;
   };
   if(bd&&bd.key==='footix'){return adminBonus(coteVal(prono.cote)||cotes.c1);}
