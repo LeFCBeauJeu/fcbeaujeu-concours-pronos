@@ -1168,10 +1168,9 @@ function computeMatchResult(user,m){
     return pts;
   };
   if(bd&&bd.key==='footix'){
-    // Footix : points du vainqueur réel, même sans prono sélectionné
+    // Footix : toujours les points du vainqueur RÉEL, peu importe le prono choisi
     const winCote = res===1?'1':res===0?'x':'2';
-    const basePts = coteVal(prono.cote||winCote);
-    return adminBonus(basePts||cotes.c1);
+    return adminBonus(coteVal(winCote));
   }
   if(bd&&bd.key==='doublechance'){
     const good=isCorrect(prono.cote)?prono.cote:isCorrect(prono.cote2)?prono.cote2:null;
