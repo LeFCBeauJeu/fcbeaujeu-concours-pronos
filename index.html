@@ -1151,8 +1151,11 @@ async function setBracketPick(key,value,list,msgId){
 // SCORING
 // ═══════════════════════════════════════════════════════════════════════════
 function computeMatchResult(user,m){
-  if(!m.result||!user.pronos||!user.pronos[m.id])return 0;
-  const prono=user.pronos[m.id];
+  if(!m.result)return 0;
+  const prono=(user.pronos&&user.pronos[m.id])||{cote:null,cote2:null};
+  // Footix sans prono : on laisse passer
+  const bonusKeyEarly=user.matchBonus&&user.matchBonus[m.id]||null;
+  if(!prono.cote&&bonusKeyEarly!=='footix')return 0;
   const cotes=m.cotes||{c1:20,cx:40,c2:60};
   const winner=(s1,s2)=>s1>s2?1:s1<s2?2:0;
   const res=winner(m.result.s1,m.result.s2);
