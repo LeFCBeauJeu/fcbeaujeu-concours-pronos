@@ -199,6 +199,27 @@ body{font-family:var(--font-body);background:var(--black);color:var(--white);min
 #top-banner{display:none;width:100%;background:var(--orange);color:white;text-align:center;padding:10px 16px;font-family:var(--font-body);font-size:13px;font-weight:600;position:relative;z-index:20;line-height:1.4;}
 #top-banner a{color:white;text-decoration:underline;}
 #top-banner.visible{display:block;}
+.comm-match{background:var(--dark);border:1px solid var(--gray);border-radius:var(--r-lg);margin-bottom:10px;overflow:hidden}
+.comm-match-header{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;transition:background .15s}
+.comm-match-header:hover{background:var(--dark2)}
+.comm-match-body{display:none;padding:14px 16px;border-top:1px solid var(--gray)}
+.comm-match-body.open{display:block}
+.comm-chevron{font-size:13px;color:var(--muted);transition:transform .2s;flex-shrink:0}
+.comm-chevron.open{transform:rotate(180deg)}
+.comm-stats-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;margin-bottom:6px;background:var(--gray)}
+.comm-stats-labels{display:grid;grid-template-columns:1fr 1fr 1fr;text-align:center;margin-bottom:14px}
+.comm-stat-lbl{font-size:11px;font-weight:600}
+.comm-pronos-list{display:flex;flex-direction:column;gap:5px}
+.comm-prono-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;background:var(--dark2);border:1px solid var(--gray)}
+.comm-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;background:var(--dark3);border:1px solid var(--gray)}
+.comm-pseudo{font-size:13px;font-weight:500;color:var(--white);flex:1}
+.comm-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;white-space:nowrap;flex-shrink:0}
+.comm-badge.c1{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3)}
+.comm-badge.cx{background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.3)}
+.comm-badge.c2{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3)}
+.comm-section-lbl{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.comm-locked{opacity:.55;cursor:default}
+.comm-locked .comm-match-header:hover{background:transparent}
 .trophies-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:10px;margin-bottom:16px}
 .trophy-card{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 6px;border-radius:10px;border:1px solid var(--gray);background:var(--dark2);position:relative;transition:transform .15s}
 .trophy-card:hover{transform:translateY(-2px)}
@@ -247,6 +268,7 @@ body{font-family:var(--font-body);background:var(--black);color:var(--white);min
     <button class="nav-btn" onclick="goto('bonus')" data-page="bonus"><span class="icon">🎯</span> Bonus</button>
     <button class="nav-btn" onclick="goto('bracket')" data-page="bracket"><span class="icon">🎖️</span> Bracket</button>
     <button class="nav-btn" onclick="goto('classement')" data-page="classement"><span class="icon">📊</span> Classement</button>
+    <button class="nav-btn" onclick="goto('communaute')" data-page="communaute"><span class="icon">👥</span> Communauté</button>
     <button class="nav-btn" onclick="goto('profil')" data-page="profil"><span class="icon">👤</span> Mon Profil</button>
     <div class="admin-toggle">
       <div id="sync-status" class="sync-indicator"><div class="sync-dot" id="sync-dot"></div><span id="sync-label">Connexion...</span></div>
@@ -423,6 +445,13 @@ body{font-family:var(--font-body);background:var(--black);color:var(--white);min
       <div id="leaderboard-list"></div>
     </div>
 
+    <!-- COMMUNAUTÉ -->
+    <div class="page" id="page-communaute">
+      <div class="page-title">COMMUNAUTÉ</div>
+      <div class="page-sub">Pronos de tous les joueurs — visibles après fermeture du match</div>
+      <div id="communaute-list"></div>
+    </div>
+
     <!-- PROFIL -->
     <div class="page" id="page-profil">
       <div class="page-title">MON PROFIL</div>
@@ -537,6 +566,7 @@ body{font-family:var(--font-body);background:var(--black);color:var(--white);min
   <button class="nav-btn" onclick="goto('bonus')" data-page="bonus"><span class="icon">🎯</span>Bonus</button>
   <button class="nav-btn" onclick="goto('bracket')" data-page="bracket"><span class="icon">🎖️</span>Bracket</button>
   <button class="nav-btn" onclick="goto('classement')" data-page="classement"><span class="icon">📊</span>Class.</button>
+  <button class="nav-btn" onclick="goto('communaute')" data-page="communaute"><span class="icon">👥</span>Commun.</button>
   <button class="nav-btn" onclick="goto('profil')" data-page="profil"><span class="icon">👤</span>Profil</button>
 </div>
 
@@ -766,6 +796,7 @@ function renderPage(p){
   if(p==='bonus')renderBonus();
   if(p==='bracket')renderBracket();
   if(p==='classement')renderClassement();
+  if(p==='communaute')renderCommunaute();
   if(p==='profil')renderProfil();
   if(p==='joueurs')renderJoueurs();
   if(p==='settings')renderSettings();
@@ -1880,6 +1911,100 @@ function hideTrophyTooltip() {
 }
 document.addEventListener('mousemove', moveTrophyTooltip);
 document.addEventListener('click', function(e){if(!e.target.closest('.trophy-card')&&!e.target.closest('.trophy-platinum-card'))hideTrophyTooltip();});
+
+function renderCommunaute(){
+  const container=document.getElementById('communaute-list');
+  if(!container)return;
+  container.innerHTML='';
+  const sorted=[...state.matches].sort((a,b)=>{
+    const da=a.deadlineDate&&a.deadline?new Date(a.deadlineDate+'T'+a.deadline+':00'):new Date('2099-01-01');
+    const db=b.deadlineDate&&b.deadline?new Date(b.deadlineDate+'T'+b.deadline+':00'):new Date('2099-01-01');
+    return da-db;
+  });
+  const participants=Object.values(state.participants);
+  sorted.forEach(function(m,idx){
+    const locked=isMatchLocked(m)||m.result!=null;
+    const cotes=m.cotes||{c1:20,cx:40,c2:60};
+    const t1n=m.t1.replace(/\p{Emoji_Presentation}+\s*/gu,'').trim()||m.t1;
+    const t2n=m.t2.replace(/\p{Emoji_Presentation}+\s*/gu,'').trim()||m.t2;
+    const resultLabel=m.result?m.result.s1+' - '+m.result.s2:'';
+    const block=document.createElement('div');
+    block.className='comm-match'+(locked?'':' comm-locked');
+    // Header
+    const header=document.createElement('div');
+    header.className='comm-match-header';
+    header.innerHTML='<div><div style="font-size:14px;font-weight:600;color:var(--white);">'+m.t1+' vs '+m.t2+'</div>'
+      +'<div style="font-size:11px;color:var(--muted);margin-top:2px;">'+m.date+(m.city?' · '+m.city:'')+(m.group?' · '+m.group:'')+'</div></div>'
+      +'<div style="display:flex;align-items:center;gap:8px;">'
+      +(m.result?'<span style="font-size:11px;padding:3px 10px;border-radius:20px;background:rgba(34,197,94,.1);color:#22c55e;border:1px solid rgba(34,197,94,.3);">✓ '+resultLabel+'</span>'
+        :locked?'<span style="font-size:11px;padding:3px 10px;border-radius:20px;background:var(--dark2);color:var(--muted);border:1px solid var(--gray);">🔒 Fermé</span>'
+        :'<span style="font-size:11px;padding:3px 10px;border-radius:20px;background:var(--dark2);color:var(--muted);border:1px solid var(--gray);">⏳ En cours</span>')
+      +(locked?'<span class="comm-chevron" id="comm-chev-'+m.id+'">▼</span>':'')
+      +'</div>';
+    if(locked){
+      header.onclick=function(){
+        const body=document.getElementById('comm-body-'+m.id);
+        const chev=document.getElementById('comm-chev-'+m.id);
+        if(!body)return;
+        const isOpen=body.classList.contains('open');
+        body.classList.toggle('open',!isOpen);
+        if(chev)chev.classList.toggle('open',!isOpen);
+      };
+    }
+    block.appendChild(header);
+    // Body (seulement si verrouillé)
+    if(locked){
+      const body=document.createElement('div');
+      body.className='comm-match-body';
+      body.id='comm-body-'+m.id;
+      // Stats %
+      const all=participants.filter(u=>u.pronos&&u.pronos[m.id]&&u.pronos[m.id].cote);
+      const total=all.length;
+      let statsHtml='';
+      if(total>0){
+        const n1=all.filter(u=>u.pronos[m.id].cote==='1').length;
+        const nx=all.filter(u=>u.pronos[m.id].cote==='x').length;
+        const n2=all.filter(u=>u.pronos[m.id].cote==='2').length;
+        const p1=Math.round(n1/total*100),px=Math.round(nx/total*100),p2=Math.round(n2/total*100);
+        statsHtml='<div class="comm-section-lbl">'+total+' pronos enregistrés</div>'
+          +'<div class="comm-stats-bar">'
+          +'<div style="width:'+p1+'%;height:100%;background:#22c55e;"></div>'
+          +'<div style="width:'+px+'%;height:100%;background:#f59e0b;"></div>'
+          +'<div style="width:'+p2+'%;height:100%;background:#ef4444;"></div>'
+          +'</div>'
+          +'<div class="comm-stats-labels">'
+          +'<div class="comm-stat-lbl" style="color:#22c55e;">'+p1+'% '+t1n+'</div>'
+          +'<div class="comm-stat-lbl" style="color:#f59e0b;">'+px+'% Nul</div>'
+          +'<div class="comm-stat-lbl" style="color:#ef4444;">'+p2+'% '+t2n+'</div>'
+          +'</div>';
+      }
+      // Liste pronos
+      let pronosHtml='<div class="comm-section-lbl" style="margin-top:4px;">Pronos individuels</div><div class="comm-pronos-list">';
+      const withPronos=participants.filter(u=>u.pronos&&u.pronos[m.id]&&u.pronos[m.id].cote);
+      const withoutPronos=participants.filter(u=>!u.pronos||!u.pronos[m.id]||!u.pronos[m.id].cote);
+      withPronos.forEach(function(u){
+        const av=getAvatar(u);
+        const cote=u.pronos[m.id].cote;
+        const label=cote==='1'?m.t1:cote==='x'?'Nul':m.t2;
+        const cls=cote==='1'?'c1':cote==='x'?'cx':'c2';
+        pronosHtml+='<div class="comm-prono-row">'
+          +'<div class="comm-av">'+av.emoji+'</div>'
+          +'<div class="comm-pseudo">'+u.pseudo+'</div>'
+          +'<span class="comm-badge '+cls+'">'+label+'</span>'
+          +'</div>';
+      });
+      if(withoutPronos.length>0){
+        pronosHtml+='</div><div class="comm-section-lbl" style="margin-top:12px;">Sans prono ('+withoutPronos.length+')</div><div style="font-size:12px;color:var(--muted);">'
+          +withoutPronos.map(u=>u.pseudo).join(', ')+'</div>';
+      } else {
+        pronosHtml+='</div>';
+      }
+      body.innerHTML=statsHtml+pronosHtml;
+      block.appendChild(body);
+    }
+    container.appendChild(block);
+  });
+}
 
 function initApp(){
   updateAdminUI();
