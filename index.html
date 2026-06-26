@@ -383,7 +383,15 @@ body{font-family:var(--font-body);background:var(--black);color:var(--white);min
           <div class="form-group" style="margin:0;flex:1;min-width:120px;"><label class="form-label">Équipe 2</label><input class="form-input" id="am-t2" placeholder="🇸🇳 Sénégal"></div>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
-          <div class="form-group" style="margin:0;flex:1;min-width:120px;"><label class="form-label">Groupe</label><input class="form-input" id="am-group" placeholder="Groupe I · J1"></div>
+          <div class="form-group" style="margin:0;flex:1;min-width:120px;"><label class="form-label">Phase</label>
+            <select class="form-select" id="am-group">
+              <option value="Phase de groupes">Phase de groupes</option>
+              <option value="16èmes de finale">16èmes de finale</option>
+              <option value="8èmes de finale">8èmes de finale</option>
+              <option value="Quarts de finale">Quarts de finale</option>
+              <option value="Demi-finales">Demi-finales</option>
+              <option value="Finale">Finale</option>
+            </select></div>
           <div class="form-group" style="margin:0;flex:1;min-width:120px;"><label class="form-label">Date</label><input class="form-input" id="am-date" placeholder="16 juin 2026"></div>
           <div class="form-group" style="margin:0;flex:1;min-width:100px;"><label class="form-label">Ville</label><input class="form-input" id="am-city" placeholder="New York"></div>
         </div>
@@ -544,6 +552,16 @@ body{font-family:var(--font-body);background:var(--black);color:var(--white);min
         <h3>🎯 Bonus personnalisés</h3>
         <div id="bonus-settings-list"></div>
         <button class="btn-primary" style="max-width:240px;margin-top:1rem;" onclick="saveConfig()">Enregistrer tout →</button>
+      </div>
+      <div class="settings-section">
+        <h3>🎁 Offrir des jokers aux joueurs</h3>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:1rem;">Offre 1 utilisation supplementaire a tous les joueurs.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="save-btn" onclick="giveJoker('doublechance')" style="background:#6366f1;">⚡ +1 Double Chance</button>
+          <button class="save-btn" onclick="giveJoker('barton')" style="background:#ef4444;">🟥 +1 Joey Barton</button>
+          <button class="save-btn" onclick="giveJoker('peno')" style="background:#22c55e;color:#111;">🥅 +1 Peno</button>
+        </div>
+        <div id="give-joker-status" style="font-size:12px;color:#22c55e;margin-top:10px;"></div>
       </div>
       <div class="settings-section">
         <h3>Couleur principale</h3>
@@ -951,6 +969,7 @@ function renderPronos(){
     const sel1=isFootixOn?'sel-1':(prono.cote==='1'?'sel-1':(isDCOn&&prono.cote2==='1'?'sel-1':''));
     const selx=isFootixOn?'sel-x':(prono.cote==='x'?'sel-x':(isDCOn&&prono.cote2==='x'?'sel-x':''));
     const sel2=isFootixOn?'sel-2':(prono.cote==='2'?'sel-2':(isDCOn&&prono.cote2==='2'?'sel-2':''));
+    const knockoutHint=m.knockout?'<div style="font-size:11px;color:#f59e0b;margin-top:6px;">⏱️ Résultat en 90 min (hors prolongations et tirs au but)</div>':'';
     const hintTxt=isDCOn?'⚡ Double Chance — clique sur 2 résultats !':isFootixOn?'🐓 Footix activé — tu gagnes quoi qu\'il arrive !':isDoublOn?'2️⃣ Le Doublé — bon prono = points ×2 !':'💡 Plus le chiffre est élevé, plus tu gagnes de points !';
     let cotesHtml='';
     if(!hasResult){
@@ -977,7 +996,9 @@ function renderPronos(){
           <button class="cote-btn ${sel2}" ${locked?'disabled':''} onclick="selectCote('${m.id}','2')"><span class="cote-label">${t2name}</span><span class="cote-val">${cotes.c2}</span></button>
         </div>
         ${statsHtml}
-        <div class="cote-hint">${hintTxt}</div></div>`;
+        <div class="cote-hint">${hintTxt}</div>
+        ${knockoutHint}
+      </div>`;
     } else {
       const coteLbl=prono.cote==='1'?t1name:prono.cote==='x'?'Nul':prono.cote==='2'?t2name:'—';
       const myPts=computeMatchResult(user,m);
@@ -990,10 +1011,12 @@ function renderPronos(){
       bonusHtml='<div class="bonus-chips">';
       bonusDefs.forEach(bd=>{
         const uses=user.matchBonus?Object.values(user.matchBonus).filter(k=>k===bd.key).length:0;
+        const extra=(user.bonusExtra&&user.bonusExtra[bd.key])||0;
+        const maxUses=2+extra;
         const isActive=usedBonusKey===bd.key;
-        const maxed=!isActive&&uses>=2;
+        const maxed=!isActive&&uses>=maxUses;
         const disabled=locked||maxed;
-        const counter=isActive?'✓':(uses>0?uses+'/2':'');
+        const counter=isActive?'✓':(uses>0?uses+'/'+maxUses:'');
         bonusHtml+=`<button class="bonus-chip${isActive?' bonus-active':maxed?' bonus-used':''}" ${disabled?'disabled':''} title="${bd.desc}" onclick="toggleMatchBonus('${m.id}','${bd.key}')">
           <span>${bd.emoji} <u>${bd.name}</u>${counter?` <span style="font-size:10px;opacity:.8;">${counter}</span>`:''}</span></button>`;
       });
@@ -1067,6 +1090,7 @@ async function addMatch(){
   const newMatch={
     id:'m'+Date.now(),t1,t2,
     group:document.getElementById('am-group').value.trim()||'Phase de groupes',
+    knockout:document.getElementById('am-group').value!=='Phase de groupes',
     date:document.getElementById('am-date').value.trim()||'',
     city:document.getElementById('am-city').value.trim()||'',
     deadlineDate:document.getElementById('am-dldate').value||'',
@@ -1221,8 +1245,8 @@ function computePoints(pseudo){
   state.matches.forEach(m=>{if(m.result)pts+=computeMatchResult(user,m);});
   if(cfg('bracketWinner')&&user.bracket&&user.bracket.champion===cfg('bracketWinner')){const f=getBracketPts().find(b=>b.team===cfg('bracketWinner'));if(f)pts+=f.pts;}
   if(cfg('bracketScorer')&&user.bracket&&user.bracket.scorer===cfg('bracketScorer')){const f=getScorerPts().find(b=>b.name===cfg('bracketScorer'));if(f)pts+=f.pts;}
-  if(cfg('bracketSurprise')&&user.bracket&&user.bracket.surprise===cfg('bracketSurprise')){const f=getSurprisePts().find(b=>b.team===cfg('bracketSurprise'));if(f)pts+=f.pts;}
-  if(cfg('bracketFlop')&&user.bracket&&user.bracket.flop===cfg('bracketFlop')){const f=getFlopPts().find(b=>b.team===cfg('bracketFlop'));if(f)pts+=f.pts;}
+  const surpriseArr=(()=>{const s=cfg('bracketSurprise')||[];return Array.isArray(s)?s:(s?[s]:[]);})();if(user.bracket&&user.bracket.surprise&&surpriseArr.includes(user.bracket.surprise)){const f=getSurprisePts().find(b=>b.team===user.bracket.surprise);if(f)pts+=f.pts;}
+  const flopArr=(()=>{const f2=cfg('bracketFlop')||[];return Array.isArray(f2)?f2:(f2?[f2]:[]);})();if(user.bracket&&user.bracket.flop&&flopArr.includes(user.bracket.flop)){const f=getFlopPts().find(b=>b.team===user.bracket.flop);if(f)pts+=f.pts;}
   if(user.bonusPoints) pts+=user.bonusPoints;
   return pts;
 }
@@ -1513,8 +1537,8 @@ function renderSettings(){
   renderSettingsList('flop-pts-settings',getFlopPts(),'team','fpt','flopPts');
   renderWinnerBlock('winner-champion-wrap',getBracketPts(),'team','bracketWinner','🏆 Champion');
   renderWinnerBlock('winner-scorer-wrap',getScorerPts(),'name','bracketScorer','⚽ Meilleur Buteur');
-  renderWinnerBlock('winner-surprise-wrap',getSurprisePts(),'team','bracketSurprise','🌟 Surprise');
-  renderWinnerBlock('winner-flop-wrap',getFlopPts(),'team','bracketFlop','💥 Flop');
+  renderMultiWinnerBlock('winner-surprise-wrap',getSurprisePts(),'team','bracketSurprise','Surprise');
+  renderMultiWinnerBlock('winner-flop-wrap',getFlopPts(),'team','bracketFlop','Flop');
   const bonusDefs=getBonusDefs();
   const bc=document.getElementById('bonus-settings-list');
   if(bc){
@@ -2006,6 +2030,96 @@ function renderCommunaute(){
   });
 }
 
+function renderMultiWinnerBlock(containerId,items,keyField,configKey,label){
+  const wrap=document.getElementById(containerId);
+  if(!wrap)return;
+  const current=state.config&&state.config[configKey]||[];
+  const currentArr=Array.isArray(current)?current:(current?[current]:[]);
+  wrap.innerHTML='';
+  if(currentArr.length>0){
+    const vDiv=document.createElement('div');
+    vDiv.style.cssText='margin-bottom:10px;display:flex;flex-direction:column;gap:6px;';
+    currentArr.forEach(function(val){
+      const found=items.find(function(x){return x[keyField]===val;});
+      const row=document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;justify-content:space-between;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:8px;padding:8px 14px;';
+      const pts=found?' - '+found.pts+' pts':'';
+      const ck=configKey;const vv=val;
+      row.innerHTML='<span style="color:#22c55e;font-size:13px;font-weight:600;">OK '+val+pts+'</span>';
+      const delBtn=document.createElement('button');
+      delBtn.textContent='Retirer';
+      delBtn.style.cssText='font-size:11px;color:#ef4444;background:transparent;border:1px solid #ef4444;border-radius:6px;padding:3px 8px;cursor:pointer;';
+      delBtn.onclick=function(){removeMultiWinner(ck,vv);};
+      row.appendChild(delBtn);
+      vDiv.appendChild(row);
+    });
+    wrap.appendChild(vDiv);
+  }
+  const row=document.createElement('div');
+  row.style.cssText='display:flex;gap:8px;align-items:center;';
+  const sel=document.createElement('select');
+  sel.className='form-select';sel.style.flex='1';
+  const defOpt=document.createElement('option');
+  defOpt.value='';defOpt.textContent='Ajouter '+label;
+  sel.appendChild(defOpt);
+  items.forEach(function(item){
+    if(currentArr.includes(item[keyField]))return;
+    const opt=document.createElement('option');
+    opt.value=item[keyField];
+    opt.textContent=item[keyField]+(item.pts?' ('+item.pts+' pts)':'');
+    sel.appendChild(opt);
+  });
+  const ck2=configKey;
+  const btn=document.createElement('button');
+  btn.className='save-btn';btn.textContent='Valider';
+  btn.style.cssText='background:#22c55e;border:none;white-space:nowrap;';
+  btn.onclick=function(){
+    const val=sel.value;
+    if(!val){toast('Selectionne !');return;}
+    if(confirm('Valider '+val+' comme '+label+' ?')){
+      applyMultiWinner(ck2,val);
+    }
+  };
+  row.appendChild(sel);row.appendChild(btn);wrap.appendChild(row);
+}
+
+async function removeMultiWinner(configKey,value){
+  if(!confirm('Retirer '+value+' ?'))return;
+  const current=state.config&&state.config[configKey]||[];
+  const currentArr=Array.isArray(current)?current:(current?[current]:[]);
+  const newConfig=Object.assign({},state.config||{});
+  newConfig[configKey]=currentArr.filter(function(v){return v!==value;});
+  await fbSet('config',newConfig);
+  renderSettings();
+  toast('Retire !');
+}
+
+async function applyMultiWinner(configKey,value){
+  const current=state.config&&state.config[configKey]||[];
+  const currentArr=Array.isArray(current)?current:(current?[current]:[]);
+  if(currentArr.includes(value)){toast('Deja valide !');return;}
+  const newConfig=Object.assign({},state.config||{});
+  newConfig[configKey]=currentArr.concat([value]);
+  await fbSet('config',newConfig);
+  renderSettings();
+  toast('Points attribues !');
+}
+
+async function giveJoker(bonusKey){
+  if(!state.isAdmin)return;
+  const names={doublechance:'Double Chance',barton:'Joey Barton',peno:'Peno'};
+  if(!confirm('Offrir 1 '+names[bonusKey]+' a tous ?'))return;
+  const updates={};
+  Object.values(state.participants).forEach(function(user){
+    const extra=user.bonusExtra||{};
+    extra[bonusKey]=(extra[bonusKey]||0)+1;
+    updates['participants/'+user.pseudo+'/bonusExtra']=extra;
+  });
+  await window._update(window._ref(window._db),updates);
+  const el=document.getElementById('give-joker-status');
+  if(el)el.textContent='Joker offert a tous !';
+  toast('🎁 Joker offert !');
+}
 function initApp(){
   updateAdminUI();
   renderHome();
