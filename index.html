@@ -1065,7 +1065,8 @@ async function selectCote(matchId, cote){
 async function toggleMatchBonus(matchId, bonusKey){
   if(!state.currentUser||!me())return;
   const user=me();
-  const MAX_USES=2;
+  const extra=(user.bonusExtra&&user.bonusExtra[bonusKey])||0;
+  const maxUses=2+extra;
   let matchBonus=user.matchBonus?{...user.matchBonus}:{};
   if(matchBonus[matchId]===bonusKey){
     delete matchBonus[matchId];
@@ -1077,7 +1078,7 @@ async function toggleMatchBonus(matchId, bonusKey){
     }
   } else {
     const uses=Object.values(matchBonus).filter(k=>k===bonusKey).length;
-    if(uses>=MAX_USES){toast('Ce bonus est déjà utilisé 2 fois !');return;}
+    if(uses>=maxUses){toast('Bonus utilise '+uses+'/'+maxUses+' fois !');return;}
     matchBonus[matchId]=bonusKey;
   }
   await fbUpdate('participants/'+state.currentUser,{matchBonus});
